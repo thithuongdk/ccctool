@@ -1,25 +1,98 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Run Batch File</title>
-    <HTA:Application
-        APPLICATIONNAME="Run Batch File"
+    <title>Setup Wizard</title>
+    <HTA:APPLICATION 
+        ID="oHTA"
+        APPLICATIONNAME="CCC Tool"
         BORDER="thin"
+        BORDERSTYLE="normal"
         CAPTION="yes"
+        ICON="ccc.png"
+        MAXIMIZEBUTTON="yes"
+        MINIMIZEBUTTON="yes"
         SHOWINTASKBAR="yes"
         SINGLEINSTANCE="yes"
         SYSMENU="yes"
-    />
-    <script language="VBScript">
-        Sub RunBatch()
-            Dim shell
-            Set shell = CreateObject("WScript.Shell")
-            shell.Run ".\src\script.bat", 1, True
-            Set shell = Nothing
-        End Sub
-    </script>
+        VERSION="1.0"
+        WIDTH="600"
+        HEIGHT="800"
+        WINDOWSTATE="normal"/>
+    <style>
+        .step {
+            display: none;
+            width: 600px;
+            height: 700px;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .bigButton {
+            margin: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+    </style>
+    <script language="JavaScript" src=".\src\view.js"></script>
+    <script language="JavaScript" src=".\src\common.js"></script>
+    <script language="JavaScript" src=".\src\cccInterface.js"></script>
 </head>
 <body>
-    <h1>Run Batch File</h1>
-    <button onclick="RunBatch()">Run Script</button>
+    <h1>Setup Wizard</h1>
+
+    <div>
+        <table>
+                <tr>
+                    <td><button onclick="prevStep()" id="btnPrev" class="bigButton">Back</button></td>
+                    <td width="400px"/>
+                    <td><button onclick="nextStep()" id="btnNext" class="bigButton">Next</button></td>
+                </tr>
+        </table>
+    </div>
+
+    <div id="step1" class="step">
+        <h2>Step 1: Select Tag</h2>
+        <p>Please select Home source and select New tag.</p>
+        <table>
+            <tr>
+                <td><label for="pathSrc">Home Source:</label></td>
+                <td><input type="text" id="pathSrc" value="D:\Thuong\Tool\ccctool" size="50"/></td>
+                <td><button onclick="LoadSource()">[...]</button></td>
+            </tr>
+            <tr>
+                <td><label for="srcBranch">Commit Branch:</label></td>
+                <td><input type="text" id="srcBranch" value="@123.haha" size="50" readonly/></td>
+            </tr>
+            <tr>
+                <td><label for="tagOld">Latest Tag Commit:</label></td>
+                <td><input type="text" id="tagOld" value="abcdef/@123.haha.12" size="50"/></td>
+            </tr>
+            <tr>
+                <td><label for="tagNew">New Tag Commit:</label></td>
+                <td><input type="text" id="tagNew" value="abcdef/@123.haha.13" size="50"/></td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="step2" class="step">
+        <h2>Step 2: bb infomation</h2>
+        <p>Please read and check commit comment.</p>
+        <input type="checkbox" id="createCCCTicket" checked> Create-CCC-Ticket+1
+        <input type="checkbox" id="verifyBuild" checked> Verify-Build+1
+        <table>
+            <tr>
+                <label for="bbBranch">meta-lg-webos branch:</label><br>
+                <input type="text" id="bbBranch" value="webos-acp" size="50"/>
+            </tr>
+            <tr><textarea id="bbVersion" rows="3" cols="50" readonly>com.webos.app.home=submissions/***</textarea></tr>
+            <tr><textarea id="bbComment" rows="15" cols="50">com.webos.app.home=submissions/***</textarea></tr>
+        </table>
+    </div>
+    
+    <div id="step3" class="step">
+        <h2>Step 3: Finish</h2>
+        <p>Setup is complete. Click Finish to exit.</p>
+    </div>
 </body>
 </html>

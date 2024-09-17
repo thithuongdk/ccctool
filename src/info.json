@@ -1,0 +1,15 @@
+{
+	"input":
+	{
+		"branchBB": "webos-acp",
+		"srcHome": "D:\\repo_LG\\com.webos.app.home",
+		"inputOther": "input"
+	},
+	"info":
+	{
+		"tagOld": "submissions/216.nmrm.51.ccrc.240",
+		"tagNew": "submissions/216.nmrm.51.ccrc.241",
+		"branchHome": "@216.nmrm.51.ccrc",
+		"tagOther": "tag"
+	}
+}
