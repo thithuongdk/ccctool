@@ -1,0 +1,25 @@
+<html>
+<head>
+    <title>Run Batch File</title>
+    <HTA:Application
+        APPLICATIONNAME="Run Batch File"
+        BORDER="thin"
+        CAPTION="yes"
+        SHOWINTASKBAR="yes"
+        SINGLEINSTANCE="yes"
+        SYSMENU="yes"
+    />
+    <script language="VBScript">
+        Sub RunBatch()
+            Dim shell
+            Set shell = CreateObject("WScript.Shell")
+            shell.Run ".\src\script.bat", 1, True
+            Set shell = Nothing
+        End Sub
+    </script>
+</head>
+<body>
+    <h1>Run Batch File</h1>
+    <button onclick="RunBatch()">Run Script</button>
+</body>
+</html>
