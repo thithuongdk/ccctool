@@ -28,6 +28,10 @@ function runStep(step) {
 }
 
 function nextStep() {
+    if(currentStep==1 && document.getElementById("srcBranch").value=="") {
+        alert("not found src branch, please re select path source");
+        return;
+    }
     if (currentStep < totalSteps) {
         currentStep++;
         showStep(currentStep);

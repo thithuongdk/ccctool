@@ -1,7 +1,16 @@
 var infoPath = ".\\src\\info.json"
 
 function resetTag(pathSrc, preTag) {
-    RunCMDCommand("for /f %i in ('git -C " + pathSrc + " tag -l \"*" + preTag + "*\" --sort=-creatordate') do git -C " + pathSrc + " tag -d %i");
+    // RunCMDCommand("for /f %i in ('git -C " + pathSrc + " tag -l \"*" + preTag + "*\" --sort=-creatordate') do git -C " + pathSrc + " tag -d %i");
+    var allLineTag = RunCMDCommand("git -C " + pathSrc + " tag -l \"*" + preTag + "*\" --sort=-creatordate");
+    if(allLineTag) {
+        var tags = allLineTag.split(preTag);
+        // check 20 element 
+        var tagslength = Math.min(tags.length, 20);
+        for (var i = 1; i < tagslength; i++) {
+            RunCMDCommand("git -C " + pathSrc + " tag -d " + preTag + tags[i] );
+        }
+    }
     RunCMDCommand("git -C " + pathSrc + " fetch --tags");
 }
 
@@ -143,6 +152,7 @@ function updateBB() {
                     + rootBranch;
     document.getElementById("bbVersion").value = bbPreBranch + " = \"1.0.0-" + bbSrcNewBranch + "_" + newHash + "\"";
     document.getElementById("bbComment").value = bbComment;
+    document.getElementById("commitLink").value = "";
 }
 
 function pushBB() {
@@ -165,29 +175,28 @@ function pushBB() {
     var pathSrc = document.getElementById("pathSrc").value;
     var usename = RunCMDCommand("git -C " + pathSrc + " config --get user.email").split("@")[0]
     if(!usename) {
-        alert("can not get usename")
-        return;
+        alert("can not get usename");
+        return false;
     }
 
     var gitbbfolder = "gitbbfolder"
     var bbPath = "\\com.webos.app.home\\com.webos.app.home.bb"
+    var preCommitLink = 'https://github.com/thithuongdk/ccctool/pull/new/'
     deleteFolder(gitbbfolder);
     RunCMDCommand("git clone git@github.com:thithuongdk/MouseGrabb.git -b \"" + bbBranch + "\" " + gitbbfolder);
     writeFile(gitbbfolder + bbPath, readFile(gitbbfolder + bbPath).replace(new RegExp(bbPreBranch + " *=.*"),bbVersion));
     RunCMDCommand("git -C " + gitbbfolder + " add ." + bbPath);
     RunCMDCommand("git -C " + gitbbfolder + " commit -m \"" + bbComment + "\"");
-    alert("push");
-    var command = "git -C " + gitbbfolder + " push origin " + bbBranch;
-    alert("push command: " + command)
-    var pushCode = RunCMDCommand(command);
-    alert("push done")
-    if(!pushCode) {
-        alert("push bb error");
-    } else {
-        alert("push ok");
-    }
-
-
+    var pushCode = RunCMDCommand("git -C " + gitbbfolder + " push origin \"" + bbBranch + "\"");
+    // var commitLink = pushCode.replace(new RegExp(".*(" + preCommitLink + ".*)\s.*"),/\1/g);
+    var commitLink = RunCMDCommand("git -C " + gitbbfolder + " rev-parse HEAD");
+    document.getElementById("commitLink").value = commitLink;
+    // alert(pushCode);
+    // if(!commitLink) {
+    //     alert("push fail");
+    //     return false;
+    // }
+    return true;
     // var bbPath = ".\\meta-lg-webos\\meta-starfish-nvidia\\recipes-starfish\\com.webos.app.home\\com.webos.app.home.bb";
     // RunCMDCommand("rm -rf ./meta-lg-webos");
     // RunCMDCommand("git clone \"ssh://" + usename + "@gpro.lge.com:29418/nvidia/meta-lg-webos\" -b \"" + bbBranch + "\"" 
