@@ -64,13 +64,35 @@ function readJSONFile(filePath) {
     return 0;
 }
 
-function RunCMDCommand(command) {
+function RunCommand(command) {
     var shell = new ActiveXObject("WScript.Shell");
     var exec = shell.Exec("cmd.exe /c " + command);
     var output = "";
 
     while (exec.Status === 0) {
         //sleep(100); // Chờ cho lệnh hoàn tất
+    }
+
+    if (exec.ExitCode === 0) {
+        output = exec.StdOut.ReadAll();
+        return output
+    } else {
+        output = exec.StdErr.ReadAll();
+        alert("err:" + output);
+        return ""
+    }
+}
+
+function RunCMDCommand(command) {
+    var shell = new ActiveXObject("WScript.Shell");
+    var exec = shell.Exec(command);
+    var output = "";
+    // var timecountout = 1000;
+    while (exec.Status === 0) {
+        //sleep(100); // Chờ cho lệnh hoàn tất
+        // if(timecountout--<0) {
+        //     return "";
+        // }
     }
 
     if (exec.ExitCode === 0) {
