@@ -8,7 +8,7 @@
         BORDER="thin"
         BORDERSTYLE="normal"
         CAPTION="yes"
-        ICON="ccc.png"
+        ICON=""
         MAXIMIZEBUTTON="yes"
         MINIMIZEBUTTON="yes"
         SHOWINTASKBAR="yes"
@@ -57,20 +57,20 @@
         <table>
             <tr>
                 <td><label for="pathSrc">Home Source:</label></td>
-                <td><input type="text" id="pathSrc" value="D:\Thuong\Tool\ccctool" size="50"/></td>
+                <td><input type="text" id="pathSrc" value="D:\Thuong\Tool\templatecojame" size="50"/></td>
                 <td><button onclick="LoadSource()">[...]</button></td>
             </tr>
             <tr>
                 <td><label for="srcBranch">Commit Branch:</label></td>
-                <td><input type="text" id="srcBranch" value="@123.haha" size="50" readonly/></td>
+                <td><input type="text" id="srcBranch" value="@216.nmrm.51.ccrc" size="50" readonly/></td>
             </tr>
             <tr>
                 <td><label for="tagOld">Latest Tag Commit:</label></td>
-                <td><input type="text" id="tagOld" value="abcdef/@123.haha.12" size="50"/></td>
+                <td><input type="text" id="tagOld" value="submissions/216.nmrm.51.ccrc.101" size="50"/></td>
             </tr>
             <tr>
                 <td><label for="tagNew">New Tag Commit:</label></td>
-                <td><input type="text" id="tagNew" value="abcdef/@123.haha.13" size="50"/></td>
+                <td><input type="text" id="tagNew" value="submissions/216.nmrm.51.ccrc.103" size="50"/></td>
             </tr>
         </table>
     </div>
@@ -93,6 +93,8 @@
     <div id="step3" class="step">
         <h2>Step 3: Finish</h2>
         <p>Setup is complete. Click Finish to exit.</p>
+        <label for="commitLink">Commit Link:</label><br>
+        <input type="text" id="commitLink" value="..." size="100"/>
     </div>
 </body>
 </html>

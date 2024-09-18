@@ -1,35 +1,39 @@
-var infoPath = "src\\info.json"
+var infoPath = ".\\src\\info.json"
 
-function resetTag(pathSrc) {
-    RunCMDCommand("git -C " + pathSrc + " tag | ForEach-Object { git -C " + pathSrc + " tag -d $_ }");
+function resetTag(pathSrc, preTag) {
+    RunCMDCommand("for /f %i in ('git -C " + pathSrc + " tag -l \"*" + preTag + "*\" --sort=-creatordate') do git -C " + pathSrc + " tag -d %i");
     RunCMDCommand("git -C " + pathSrc + " fetch --tags");
 }
 
 function getTag(pathSrc) {
-    resetTag(pathSrc);
+    // alert(pathSrc);
     var srcBranch = RunCMDCommand("git -C " + pathSrc + " branch --show-current");
     document.getElementById("srcBranch").value = srcBranch;
     var preTag = "";
-    if (srcBranch.includes("48.ccnc")) {
+    if (srcBranch.indexOf("48.ccnc")>=0) {
         preTag = "submissions/48.ccnc."
-    } else if(srcBranch.includes("216.nmrm.51.ccic27")) {
+    } else if(srcBranch.indexOf("216.nmrm.51.ccic27")>=0) {
         preTag = "submissions/216.nmrm.51.ccic27."
-    } else if(srcBranch.includes("216.nmrm.51.ccrc")) {
+    } else if(srcBranch.indexOf("216.nmrm.51.ccrc")>=0) {
         preTag = "submissions/216.nmrm.51.ccrc."
     } else {
         alert("err: tool not use for branch " + srcBranch);
         return;
     }
-    var allLineTag = RunCMDCommand("git -C " + pathSrc + " tag -l \"*" + preTag + "*\" --sort=-creatordate | head -n 10");
-    if(!allLineTag) {
+    resetTag(pathSrc, preTag);
+
+    var allLineTag = RunCMDCommand("git -C " + pathSrc + " tag -l \"*" + preTag + "*\" --sort=-creatordate");
+    if(allLineTag) {
         var tags = allLineTag.split(preTag);
         var lastTag = "";
         var lastTagNum = 0;
-        for (var tag in tags) {
-            var tagnum = parseInt(tag, 10);
+        // check 20 element 
+        var tagslength = Math.min(tags.length, 20);
+        for (var i = 1; i < tagslength; i++) {
+            var tagnum = parseInt(tags[i], 10);
             if (tagnum >= lastTagNum) {
                 lastTagNum = tagnum;
-                lastTag = tag;
+                lastTag = tags[i];
             }
         }
         lastTag = preTag + lastTag;
@@ -38,18 +42,18 @@ function getTag(pathSrc) {
         document.getElementById("tagOld").value = lastTag;
         document.getElementById("tagNew").value = newTag;
     }
+    writeFile(infoPath, readFile(infoPath).replace(/"srcHome":.*,/g,'"srcHome": "' + pathSrc.replace(/\\/g,"\\\\") + '",'));
+    alert("load Tag complete");
 }
 
 function pushTag() {
     var pathSrc = document.getElementById("pathSrc").value;
-    var newTag = document.getElementById("tagNew").value;
     var srcBranch = document.getElementById("srcBranch").value;
-    if (tagNotExists()) {
+    var newTag = document.getElementById("tagNew").value;
+    if (RunCMDCommand("git -C " + pathSrc + " tag -l \"" + newTag + "\"") == "") {
         RunCMDCommand("git -C " + pathSrc + " tag -a " + newTag + " -m \"" + newTag + "\"");
-        var pushCode = RunCMDCommand("git -C " + pathSrc + " push origin " + srcBranch);
-        if(!pushCode) {
-           alert("Err when push tag: " + newTag + " to branch: " + srcBranch + ", please check and rework")
-        }
+        RunCMDCommand("git -C " + pathSrc + " push origin " + newTag);
+        // alert("done push tag: " + newTag + " to branch: " + srcBranch);
     } else {
         alert("new tag has been used! please back to change new tag or continue if bypass");
     }
@@ -76,11 +80,15 @@ function RunCMDCommand(command) {
 
 function OnInit() {
     var jsonContent = readJSONFile(infoPath);
-    if(fileExists(jsonContent.input.srcHome)) {
-        document.getElementById("pathSrc").value = jsonContent.input.srcHome;
-        getTag(jsonContent.input.srcHome);
+    var pathSrc = jsonContent.input.srcHome.replace(/\\\\/g,"\\")
+    if(folderExists(jsonContent.input.srcHome)) {
+        document.getElementById("pathSrc").value = pathSrc;
+        //getTag(pathSrc);
+    } else if(folderExists(document.getElementById("pathSrc").value)) {
+        //getTag(document.getElementById("pathSrc").value);
     } else {
         document.getElementById("pathSrc").value = ""
+        alert("else");
     }
 }
 
@@ -88,34 +96,24 @@ function LoadSource() {
     var pathSrc = browseFolder();
     if(pathSrc) {
         document.getElementById("pathSrc").value = pathSrc;
-        getTag(pathSrc);
-        pathSrc = pathSrc.replace(/\\/g, "\\\\");
-        var content = readFile(infoPath);
-        content = content.replace("^ *\"srcHome\":.*$", "\"srcHome\": \"" + pathSrc + "\"")
-        writeFile(infoPath, content);
+    } else {
+        pathSrc = document.getElementById("pathSrc").value;
     }
-}
-
-function tagNotExists() {
-    var pathSrc = document.getElementById("pathSrc").value;
-    var newTag = document.getElementById("tagNew").value;
-    if(RunCMDCommand("git -C " + pathSrc + " tag | grep -q \"^" + newTag + "$\"")) {
-        return false;
-    }
-    return true;
+    getTag(pathSrc);
+    // writeFile(infoPath, readFile(infoPath).replace("^ *\"srcHome\":.*$", "\"srcHome\": \"" + pathSrc + "\""));
 }
 
 function updateBB() {
     var srcBranch = document.getElementById("srcBranch").value;
     var rootBranch = "";
     var bbPreBranch = "";
-    if (srcBranch.includes("48.ccnc")) {
+    if (srcBranch.indexOf("48.ccnc")>=0) {
         rootBranch = "ccNC";
         bbPreBranch = "WEBOS_VERSION_starfish-ccnc";
-    } else if(srcBranch.includes("216.nmrm.51.ccic27")) {
+    } else if(srcBranch.indexOf("216.nmrm.51.ccic27")>=0) {
         rootBranch = "ccIC27";
         bbPreBranch = "WEBOS_VERSION_starfish-ccic27";
-    } else if(srcBranch.includes("216.nmrm.51.ccrc")) {
+    } else if(srcBranch.indexOf("216.nmrm.51.ccrc")>=0) {
         rootBranch = "ccRC";
         bbPreBranch = "WEBOS_VERSION_starfish-ccrc";
     } else {
@@ -124,8 +122,8 @@ function updateBB() {
     var oldTag = document.getElementById("tagOld").value;
     var newTag = document.getElementById("tagNew").value;
     var bbSrcNewBranch = newTag.replace("submissions/", "")
-    var newHash = RunCMDCommand("git -C " + pathSrc + " rev-parse " + newTag);
-    var compareLog = RunCMDCommand("git -C " + pathSrc + " log --oneline --no-decorate " + oldTag + ".." + newTag).replaceAll("\"","");
+    var newHash = RunCMDCommand("git -C " + pathSrc + " rev-parse " + newTag).replace("\r", "").replace("\n", "");
+    var compareLog = RunCMDCommand("git -C " + pathSrc + " log --oneline --no-decorate " + oldTag + ".." + newTag).replace(/"/g,"");
     var listticket = compareLog.replace(/^\w* /g,"");
     var bbComment = "com.webos.app.home=" + newTag + "\n\n"
                     + ":Release Notes:\n"
@@ -146,16 +144,17 @@ function updateBB() {
     document.getElementById("bbVersion").value = bbPreBranch + " = \"1.0.0-" + bbSrcNewBranch + "_" + newHash + "\"";
     document.getElementById("bbComment").value = bbComment;
 }
+
 function pushBB() {
     var srcBranch = document.getElementById("srcBranch").value;
     var bbPreBranch = "";
-    if (srcBranch.includes("48.ccnc")) {
+    if (srcBranch.indexOf("48.ccnc")>=0) {
         rootBranch = "ccNC";
         bbPreBranch = "WEBOS_VERSION_starfish-ccnc";
-    } else if(srcBranch.includes("216.nmrm.51.ccic27")) {
+    } else if(srcBranch.indexOf("216.nmrm.51.ccic27")>=0) {
         rootBranch = "ccIC27";
         bbPreBranch = "WEBOS_VERSION_starfish-ccic27";
-    } else if(srcBranch.includes("216.nmrm.51.ccrc")) {
+    } else if(srcBranch.indexOf("216.nmrm.51.ccrc")>=0) {
         rootBranch = "ccRC";
         bbPreBranch = "WEBOS_VERSION_starfish-ccrc";
     } else {
@@ -163,28 +162,35 @@ function pushBB() {
     var bbVersion = document.getElementById("bbVersion").value;
     var bbBranch = document.getElementById("bbBranch").value;
     var bbComment = document.getElementById("bbComment").value;
+    var pathSrc = document.getElementById("pathSrc").value;
     var usename = RunCMDCommand("git -C " + pathSrc + " config --get user.email").split("@")[0]
     if(!usename) {
         alert("can not get usename")
         return;
     }
 
-    var bbPath = ".\\MouseGrabb\\com.webos.app.home\\com.webos.app.home.bb"
-    RunCMDCommand("rm -rf MouseGrabb");
-    // RunCMDCommand("rmdir /s /q MouseGrabb");
-    RunCMDCommand("git clone git@github.com:thithuongdk/MouseGrabb.git");
-    RunCMDCommand("sed -i \"s/^ *" + bbPreBranch + " .*/" + bbVersion + "/\" " + bbPath);
-    RunCMDCommand("git -C .\\MouseGrabb add " + bbPath)
-    RunCMDCommand("git -C .\\MouseGrabb commit -m \"" + bbComment + "\"")
-    var pushCode = RunCMDCommand("git -C .\\MouseGrabb push origin " + bbBranch)
+    var gitbbfolder = "gitbbfolder"
+    var bbPath = "\\com.webos.app.home\\com.webos.app.home.bb"
+    deleteFolder(gitbbfolder);
+    RunCMDCommand("git clone git@github.com:thithuongdk/MouseGrabb.git -b \"" + bbBranch + "\" " + gitbbfolder);
+    writeFile(gitbbfolder + bbPath, readFile(gitbbfolder + bbPath).replace(new RegExp(bbPreBranch + " *=.*"),bbVersion));
+    RunCMDCommand("git -C " + gitbbfolder + " add ." + bbPath);
+    RunCMDCommand("git -C " + gitbbfolder + " commit -m \"" + bbComment + "\"");
+    alert("push");
+    var command = "git -C " + gitbbfolder + " push origin " + bbBranch;
+    alert("push command: " + command)
+    var pushCode = RunCMDCommand(command);
+    alert("push done")
     if(!pushCode) {
-        alert("push bb error")
+        alert("push bb error");
+    } else {
+        alert("push ok");
     }
 
 
     // var bbPath = ".\\meta-lg-webos\\meta-starfish-nvidia\\recipes-starfish\\com.webos.app.home\\com.webos.app.home.bb";
     // RunCMDCommand("rm -rf ./meta-lg-webos");
-    // RunCMDCommand("git clone \"ssh://" + usename + "@gpro.lge.com:29418/nvidia/meta-lg-webos\" "  
+    // RunCMDCommand("git clone \"ssh://" + usename + "@gpro.lge.com:29418/nvidia/meta-lg-webos\" -b \"" + bbBranch + "\"" 
     //                 + "&& (cd \"meta-lg-webos\" && mkdir -p `git rev-parse --git-dir`/hooks/ "
     //                 + "&& curl -Lo `git rev-parse --git-dir`/hooks/commit-msg http://gpro.lge.com/tools/hooks/commit-msg "
     //                 + "&& chmod +x `git rev-parse --git-dir`/hooks/commit-msg)")

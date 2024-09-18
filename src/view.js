@@ -21,6 +21,7 @@ function runStep(step) {
             updateBB();
             break;
         case 3:
+            pushBB();
             break;
         default:
     } 

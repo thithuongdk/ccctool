@@ -7,6 +7,17 @@ function browseFolder() {
     }
     return "";
 }
+function deleteFolder(folderPath) {
+    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    if (fso.FolderExists(folderPath)) {
+        fso.DeleteFolder(folderPath, true);
+    }
+}
+                
+function folderExists(folderPath) {
+    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    return fso.FolderExists(folderPath);
+}
 
 function fileExists(filePath) {
     var fso = new ActiveXObject("Scripting.FileSystemObject");
@@ -19,6 +30,7 @@ function readFile(filePath) {
         var file = fso.OpenTextFile(filePath, 1); // 1 = ForReading
         var content = file.ReadAll();
         file.Close();
+        // alert("content read: " + content);
         return content;
     } else {
         alert(filePath + " not found");
@@ -32,6 +44,7 @@ function writeFile(filePath, content) {
         var file = fso.OpenTextFile(filePath, 2); // 2 = ForWriteing
         file.Write(content);
         file.Close();
+        // alert("content write: " + content);
     } else {
         alert(filePath + " not found");
     }
